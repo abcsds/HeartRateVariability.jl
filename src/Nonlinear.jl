@@ -5,7 +5,7 @@ import Statistics
 
 #=
 This function calculates the approximate entropy
-:param n: the array that contains the NN-inetrvals
+:param n: the array that contains the NN-intervals
 :param m: the embedding dimension, default=2
 :param r: the tolerance, default=6
 :return: the approximate entropy
@@ -18,7 +18,7 @@ end # apen
 
 #=
 This function calculates the sample entropy
-:param n: the array that contains the NN-inetrvals
+:param n: the array that contains the NN-intervals
 :param m: the embedding dimension, default=2
 :param r: the tolerance, default=6
 :return: the sample entropy
@@ -31,7 +31,7 @@ end # sampen
 
 #=
 This function creates a template of a given array over an embedding dimension
-:param n: the array that contains the NN-inetrvals
+:param n: the array that contains the NN-intervals
 :param m: the embedding dimension, default=2
 :return template: the created template
 =#
@@ -45,7 +45,7 @@ end # get_template
 
 #=
 This function calculates the distances for the approximate entropy
-:param n: the array that contains the NN-inetrvals
+:param n: the array that contains the NN-intervals
 :param m: the embedding dimension, default=2
 :param r: the tolerance, default=6
 :return: the distance for the approximate entropy
@@ -66,7 +66,7 @@ end # get_apen_dist
 
 #=
 This function calculates the distances for the sample entropy
-:param n: the array that contains the NN-inetrvals
+:param n: the array that contains the NN-intervals
 :param m: the embedding dimension, default=2
 :param r: the tolerance, default=6
 :param l: a value to limit the for-loops
@@ -91,7 +91,7 @@ end # get_sampen_dist
 
 #=
 This function calculates the renyi entropy of a given order
-:param n: the array that contains the NN-inetrvals
+:param n: the array that contains the NN-intervals
 :param a: the order of the renyi entropy
 :return: the calculated renyi entropy
 =#
@@ -102,7 +102,7 @@ end # renyi
 #=
 This function calculates the hurst coefficient
 It was inspired by the python hurst package by Dmitry A. Mottl (https://github.com/Mottl/hurst)
-:param n: the array that contains the NN-inetrvals
+:param n: the array that contains the NN-intervals
 :return H: the hurst coefficient
 =#
 function hurst(n)
@@ -145,7 +145,7 @@ end # hurst
 #=
 This function calculates the rescaled range of a time series
 It was inspired by the python hurst package by Dmitry A. Mottl (https://github.com/Mottl/hurst)
-:param n: the array that contains the NN-inetrvals
+:param n: the array that contains the NN-intervals
 :return: the rescaled range
 =#
 function get_rs(n)

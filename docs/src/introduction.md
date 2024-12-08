@@ -34,7 +34,9 @@ for i=2...n
 rr _{i} := \frac{2*(RR_{i}-RR_{i-1})}{RR_{i}+RR_{i-1}}
 ```
 where n is the number of RR intervals.\
-The HRV is measured by the median of the euclidean distances of the relative RR intervals to the average of the relative RR intervals. [Read more](https://marcusvollmer.github.io/HRV/files/paper_method.pdf)
+The HRV is measured by the median of the euclidean distances of the relative RR intervals to the average of the relative RR intervals. [Read more](https://marcusvollmer.github.io/HRV/files/paper_method.pdf) [^1]
+
+[^1]: Vollmer, M. (2015). A robust, simple and reliable measure of heart rate variability using relative RR intervals. 2015 Computing in Cardiology Conference (CinC), 609–612. https://doi.org/10.1109/CIC.2015.7410984
 
 # Frequency-Domain Analysis
 

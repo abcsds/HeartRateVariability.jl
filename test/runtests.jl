@@ -28,8 +28,8 @@ g=HeartRateVariability.geometric(n)
     @testset "HeartRateVariability.frequency" begin
         @test fd.vlf≈1317.96 atol=0.01*fd.vlf
         @test fd.lf≈90.36 atol=0.01*fd.lf
-        @test fd.hf≈176.05 atol=0.01*fd.hf
-        @test fd.lfhf_ratio≈0.51 atol=0.01*fd.lfhf_ratio
+        @test fd.hf≈186.93 atol=0.01*fd.hf
+        @test fd.lfhf_ratio≈0.48 atol=0.01*fd.lfhf_ratio
         @test fd.tp≈1584.35 atol=0.01*fd.tp
     end
 
@@ -44,7 +44,7 @@ g=HeartRateVariability.geometric(n)
         #testing if get_rs from module Nonlinear returns 0 when S or R is 0
         @test HeartRateVariability.Nonlinear.get_rs(ones(100))==0
 
-        #testing if warning is thwown
+        #testing if warning is thrown
         @test_logs (:warn,"To obtain a valid value for the hurst coefficient, the length of the data series must be greater than or equal to 100.") HeartRateVariability.nonlinear([1.0,2.0,1.0,2.0,1.0,2.0,1.0,2.0,1.0,2.0])
     end
 

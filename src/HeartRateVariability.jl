@@ -10,8 +10,8 @@ include("Geometric.jl")
     geometric(n,e="mean")
 
 Arguments:
-- n: the array that contains the NN-inetrvals
-- e: the maximum distance between two intervals, default="mean" (the mean value of the succsessive differences), has to be "mean" or a number
+- n: the array that contains the NN-intervals
+- e: the maximum distance between two intervals, default="mean" (the mean value of the successive differences), has to be "mean" or a number
 
 Results:
 - poincare: the Poincaré plot
@@ -28,7 +28,7 @@ end # geometric
     nonlinear(n,m=2,r=6)
 
 Arguments:
-- n: the array that contains the NN-inetrvals
+- n: the array that contains the NN-intervals
 - m: the embedding dimension, default=2
 - r: the tolerance, default=6
 
@@ -51,7 +51,7 @@ end # nonlinear
     frequency(n)
 
 Arguments:
-- n: the array that contains the NN-inetrvals
+- n: the array that contains the NN-intervals
 
 Results:
 - vlf: the very low-frequency power
@@ -73,7 +73,7 @@ end # frequency
     time_domain(n)
 
 Arguments:
-- n: the array that contains the NN-inetrvals
+- n: the array that contains the NN-intervals
 
 Results:
 - mean: the mean value
@@ -118,7 +118,7 @@ Arguments:
 - annotator: is the annotator of the record
 
 !!! note
-    In order to use the infile function for wfdb files, the WFDB Software Package from
+    In order to use the `infile` function for wfdb files, the WFDB Software Package from
     Pysionet is required. See [Installation](installation) for more information.
 """
 function infile(record::String,annotator::String)

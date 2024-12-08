@@ -4,7 +4,7 @@ import Statistics
 
 #=
 This function calculates the differences between the NN intervals
-:param n: is the array that contains the NN-inetrvals
+:param n: is the array that contains the NN-intervals
 :return diff: is an array containing the differences
 =#
 function nn_diff(n)
@@ -17,7 +17,7 @@ end #nn_diff
 
 #=
 This function calculates the standard deviation of the NN intervals
-:param n: is the array that contains the NN-inetrvals
+:param n: is the array that contains the NN-intervals
 :return: the standard deviation
 =#
 function sdnn(n)
@@ -72,7 +72,7 @@ end # nn
 
 #=
 This function calculates the mean of the NN intervals
-:param n: is the array that contains the NN-inetrvals
+:param n: is the array that contains the NN-intervals
 :return: the mean value
 =#
 function mean_nn(n)
@@ -81,7 +81,7 @@ end # mean_nn
 
 #=
 This function calculates the relative RR
-:param n: is the array that contains the NN-inetrvals
+:param n: is the array that contains the NN-intervals
 :return: the relative RR
 =#
 function rRR(n)

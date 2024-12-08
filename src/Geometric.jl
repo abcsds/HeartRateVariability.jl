@@ -5,7 +5,7 @@ import Images
 
 #=
 This function creates a Poincaré plot
-:param n: is the array that contains the NN-inetrvals
+:param n: is the array that contains the NN-intervals
 :return: a plot object
 =#
 function poincare(n)
@@ -21,8 +21,8 @@ end # poincare
 
 #=
 This function creates a recurrence plot
-:param n: is the array that contains the NN-inetrvals
-:param e: the maximum distance between two intervals, default="mean" == the mean value of succsessive differences
+:param n: is the array that contains the NN-intervals
+:param e: the maximum distance between two intervals, default="mean" == the mean value of successive differences
 :return: a plot object
 =#
 function recurrence(n,e)

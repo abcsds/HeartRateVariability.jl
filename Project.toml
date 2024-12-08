@@ -1,7 +1,7 @@
 name = "HeartRateVariability"
 uuid = "0047d930-76bf-11ea-1377-bb3cda807e9f"
 authors = ["Jasmin Walter <jasmin.walter@mni.thm.de>"]
-version = "1.0"
+version = "1.0.0"
 
 [deps]
 Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
@@ -12,10 +12,10 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Trapz = "592b5752-818d-11e9-1e9a-2b8ca4a44cd1"
 
 [compat]
-Images = "0.22"
-LombScargle = "0.5"
-StatsBase = "0.33"
+Images = "0.22, 0.23"
+LombScargle = "0.5, 1.0"
 Plots = "1.4"
+StatsBase = "0.33, 0.34"
 Trapz = "2.0"
 julia = "1"
 

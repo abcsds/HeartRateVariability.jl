@@ -5,7 +5,7 @@ import Trapz
 
 #=
 This function calculates a lomb scargle transformation
-:param n: is the array that contains the NN-inetrvals
+:param n: is the array that contains the NN-intervals
 :return: the result of the lomb scargle transformation
 =#
 function lomb_scargle(n)
@@ -16,7 +16,7 @@ function lomb_scargle(n)
 end # lomb_scargle
 
 #=
-This function calculates the power of a frequency band between two given frequencys
+This function calculates the power of a frequency band between two given frequencies
 :param freq: The frequency of a lomb scargle transformation
 :param power: The power of a lomb scargle transformation
 :param min: The minimum value of the frequency band to be calculated

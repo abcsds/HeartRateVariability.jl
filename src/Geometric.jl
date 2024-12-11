@@ -2,6 +2,7 @@ module Geometric
 
 import Plots
 import Images
+import Statistics
 
 #=
 This function creates a Poincaré plot
@@ -46,5 +47,71 @@ function recurrence(n,e)
     r=Plots.plot(img);
     return r;
 end # recurrence
+
+#=
+This function calculates the standard deviation of projection of the 
+Poincaré plot on the line perpendicular to the line of identity, SD1,
+or the width of the Poincaré plot.
+:param n: the array that contains the NN-intervals
+=#
+function sd1(n)
+    # return sqrt(Statistics.std(diff(n))^2/2)
+    x=[n[i] for i in 1:length(n)-1]
+    y=[n[i+1] for i in 1:length(n)-1]
+    sd1=sqrt(Statistics.var((x-y)/sqrt(2)))
+end # sd1
+
+#=
+This function calculates the standard deviation of projection of the
+Poincaré plot on the line along the line of identity, SD2, or the length
+of the Poincaré plot.
+:param n: the array that contains the NN-intervals
+=#
+function sd2(n)
+    # return sqrt(2*Statistics.std(n)^2 - 0.5*Statistics.std(diff(n))^2)
+    x=[n[i] for i in 1:length(n)-1]
+    y=[n[i+1] for i in 1:length(n)-1]
+    sd2=sqrt(Statistics.var((x+y)/sqrt(2)))
+end # sd2
+
+#=
+This function calculates the ratio of SD2 and SD1.
+:param n: the array that contains the NN-intervals
+=#
+function sd2_sd1(n)
+    return sd2(n)/sd1(n)
+end # sd2_sd1
+
+#=
+This function calculates the area covered by the Poincaré ellipse.
+:param n: the array that contains the NN-intervals
+=#
+function sd1_sd2_area(n)
+    return π*sd1(n)*sd2(n)
+end # sd1_sd2_area
+
+#=
+This function calculates the Cardiac Sympathetic Index (CSI).
+:param n: the array that contains the NN-intervals
+=#
+function csi(n)
+    return sd2(n)/sd1(n)
+end # csi
+
+#=
+This function calculates the Cardiac Vagal Index (CVI).
+:param n: the array that contains the NN-intervals
+=#
+function cvi(n)
+    return log10(sd1(n)*sd2(n)*16)
+end # cvi
+
+#=
+This function calculates the corrected Cardiac Sympathetic Index (CSI).
+:param n: the array that contains the NN-intervals
+=#
+function ccsi(n)
+    return ((4*sd2(n))^2)/sd1(n)
+end # ccsi
 
 end # module

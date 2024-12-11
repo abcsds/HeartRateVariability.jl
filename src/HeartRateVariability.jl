@@ -7,7 +7,7 @@ include("Nonlinear.jl")
 include("Geometric.jl")
 
 """
-    geometric(n,e="mean")
+    geometric_plots(n,e="mean")
 
 Arguments:
 - n: the array that contains the NN-intervals
@@ -17,11 +17,36 @@ Results:
 - poincare: the Poincaré plot
 - recurrence: the recurrence plot
 """
-function geometric(n::Array{Float64,1},e="mean")
+function geometric_plots(n::Array{Float64,1},e="mean")
     if (e!="mean" && !isa(e,Number))
            error("e has to be a numerical value or 'mean'")
        end
     return (poincare=Geometric.poincare(n),recurrence=Geometric.recurrence(n,e))
+end # geometric_plots
+
+"""
+    geometric(n)
+
+Arguments:
+- n: the array that contains the NN-intervals
+
+Results:
+- sd1: the width of the Poincaré plot
+- sd2: the length of the Poincaré plot
+- sd2_sd1: the ratio of sd2 and sd1
+- sd1_sd2_area: the area of the Poincaré plot
+- csi: cardiac sympathetic index
+- cvi: cardiac vagal index
+- ccsi: corrected cardiac sympathetic index
+"""
+function geometric(n::Array{Float64,1})
+    return (sd1=Geometric.sd1(n),
+            sd2=Geometric.sd2(n),
+            sd2_sd1=Geometric.sd2_sd1(n),
+            sd1_sd2_area=Geometric.sd1_sd2_area(n),
+            csi=Geometric.csi(n),
+            cvi=Geometric.cvi(n),
+            ccsi=Geometric.ccsi(n))
 end # geometric
 
 """
@@ -77,6 +102,8 @@ Arguments:
 
 Results:
 - mean: the mean value
+- median: the median value of NN intervals
+- range: the range of NN intervals
 - sdnn: the standard deviation
 - rmssd: the root mean square of successive differences
 - sdsd: the standard deviation of successive differences
@@ -85,14 +112,22 @@ Results:
 - nn20: the number of successive NN intervals with an interval smaller than 20 ms
 - pnn20: the percentage of successive NN intervals with an interval smaller than 20 ms
 - rRR: the percentage of relative RR intervals
+- cvsd: the coefficient of variation of the successive differences
+- mean_hr: the mean heart rate
+- sd_hr: the standard deviation of the heart rate
+- max_hr: the maximum heart rate
+- min_hr: the minimum heart rate
 """
 function time_domain(n::Array{Float64,1})
     diff=TimeDomain.nn_diff(n)
-    return (mean=TimeDomain.mean_nn(n),sdnn=TimeDomain.sdnn(n),
+    return (mean=TimeDomain.mean_nn(n), median=TimeDomain.median_nn(n),
+            range=TimeDomain.range_nn(n), sdnn=TimeDomain.sdnn(n),
             rmssd=TimeDomain.rmssd(diff), sdsd=TimeDomain.sdsd(diff),
             nn50=TimeDomain.nn(diff,50), pnn50=TimeDomain.pnn(diff,50),
             nn20=TimeDomain.nn(diff,20), pnn20=TimeDomain.pnn(diff,20),
-            rRR=TimeDomain.rRR(n))
+            rRR=TimeDomain.rRR(n), cvsd=TimeDomain.cvsd(n),
+            mean_hr=TimeDomain.mean_hr(n), sd_hr=TimeDomain.sd_hr(n),
+            max_hr=TimeDomain.max_hr(n), min_hr=TimeDomain.min_hr(n))
 end # time_domain
 
 """

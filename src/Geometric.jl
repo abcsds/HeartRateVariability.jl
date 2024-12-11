@@ -10,14 +10,7 @@ This function creates a Poincaré plot
 :return: a plot object
 =#
 function poincare(n)
-    x=[]
-    y=[]
-    for i in 1:length(n)-1
-        push!(x,n[i])
-        push!(y,n[i+1])
-    end
-    p=Plots.scatter(x,y,xlabel="RRn",ylabel="RRn+1",legend=false);
-    return p;
+    return Plots.scatter(n[1:end-1],n[2:end],xlabel="RRn",ylabel="RRn+1",legend=false);
 end # poincare
 
 #=

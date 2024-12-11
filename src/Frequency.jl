@@ -24,14 +24,7 @@ This function calculates the power of a frequency band between two given frequen
 :return p: The power of the frequency band
 =#
 function get_power(freq,power,min,max)
-    count=1
-    index=[]
-    for f in freq
-        if f>=min && f<max
-            push!(index,count)
-        end
-        count+=1
-    end
+    index=findall(x->x>=min && x<max,freq)
     p=Trapz.trapz(freq[index[1]:index[end]],power[index[1]:index[end]])
     return p
 end # get_power

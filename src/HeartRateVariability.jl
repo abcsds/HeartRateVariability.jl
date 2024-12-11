@@ -119,12 +119,11 @@ Results:
 - min_hr: the minimum heart rate
 """
 function time_domain(n::Array{Float64,1})
-    diff=TimeDomain.nn_diff(n)
-    return (mean=TimeDomain.mean_nn(n), median=TimeDomain.median_nn(n),
-            range=TimeDomain.range_nn(n), sdnn=TimeDomain.sdnn(n),
-            rmssd=TimeDomain.rmssd(diff), sdsd=TimeDomain.sdsd(diff),
-            nn50=TimeDomain.nn(diff,50), pnn50=TimeDomain.pnn(diff,50),
-            nn20=TimeDomain.nn(diff,20), pnn20=TimeDomain.pnn(diff,20),
+    return (mean=TimeDomain.mean(n), median=TimeDomain.median(n),
+            range=TimeDomain.range(n), sdnn=TimeDomain.sdnn(n),
+            rmssd=TimeDomain.rmssd(diff(n)), sdsd=TimeDomain.sdsd(diff(n)),
+            nn50=TimeDomain.nn(diff(n),50), pnn50=TimeDomain.pnn(diff(n),50),
+            nn20=TimeDomain.nn(diff(n),20), pnn20=TimeDomain.pnn(diff(n),20),
             rRR=TimeDomain.rRR(n), cvsd=TimeDomain.cvsd(n),
             mean_hr=TimeDomain.mean_hr(n), sd_hr=TimeDomain.sd_hr(n),
             max_hr=TimeDomain.max_hr(n), min_hr=TimeDomain.min_hr(n))

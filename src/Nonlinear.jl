@@ -36,11 +36,7 @@ This function creates a template of a given array over an embedding dimension
 :return template: the created template
 =#
 function get_template(n,m)
-    template=[]
-    for i in 1:length(n)-m+1
-        push!(template,n[i:i+m-1])
-    end
-    return template
+    return [n[i:i+m-1] for i in 1:length(n)-m+1]
 end # get_template
 
 #=
@@ -95,9 +91,7 @@ This function calculates the renyi entropy of a given order
 :param a: the order of the renyi entropy
 :return: the calculated renyi entropy
 =#
-function renyi(n,a)
-    return StatsBase.renyientropy(n,a)
-end # renyi
+renyi(n,a) = StatsBase.renyientropy(n,a)
 
 #=
 This function calculates the hurst coefficient
@@ -107,10 +101,7 @@ It was inspired by the python hurst package by Dmitry A. Mottl (https://github.c
 =#
 function hurst(n)
     ws=Array(range(log10(10),stop=log10(length(n)),step=0.25))
-    window=[]
-    for x in ws
-        push!(window,round(Int64,exp10(x),RoundDown))
-    end
+    window = [round(Int64,exp10(x),RoundDown) for x in ws]
     if !(length(n) in window)
         push!(window,length(n))
         push!(ws,log10(length(n)))

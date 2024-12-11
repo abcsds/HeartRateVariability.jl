@@ -106,7 +106,6 @@ gp=HeartRateVariability.geometric_plots(n)
         gp = HeartRateVariability.geometric_plots(n)
 
         @testset "rr-interval-healthy-subjects.time_domain" begin
-            @test HeartRateVariability.TimeDomain.nn_diff(n)==diff(n)
             @test td.mean≈mean(n) atol=0.1
             @test td.median≈median(n) atol=0.1
             @test td.sdnn≈std(n) atol=0.1

@@ -1,6 +1,6 @@
 module Preprocessing
 
-import Interpolations
+import DataInterpolations
 import Statistics
 
 #=
@@ -39,15 +39,9 @@ This function interpolates nan values
 :return: the array with the interpolated values
 =#
 function interpolate(n::Array{Float64,1}; method::Symbol=:linear)
-    x=1:length(n)
-    # itp=Interpolations.LinearInterpolation(x,n)
-    # return [isnan(e) ? itp(i) : e for (i,e) in enumerate(n)]
     # Check if the number of missing values is valid
     n_nan = count(isnan, n)
-    @info "Number of NaN values: $n_nan"
-    if n_nan > length(n) ÷ 2
-        throw(ArgumentError("Too many missing values: $n_nan out of $(length(n))"))
-    end
+    n_nan > length(n) / 2 && throw(ArgumentError("Too many missing values: $n_nan out of $(length(n))"))
 
     # Identify indices of valid values and NaN values
     valid_indices = findall(!isnan, n)
@@ -55,27 +49,59 @@ function interpolate(n::Array{Float64,1}; method::Symbol=:linear)
 
     # Extract valid values
     valid_values = n[valid_indices]
-    x = collect(1:length(n))
-    println("Length of valid values: ", length(valid_values))
-    println("Length of invalid_values: ", length(NaN_idx))
+    x = Float64.(collect(1:length(n)))
     # Select interpolation method
     if method == :constant
-        itp = Interpolations.ConstantInterpolation(x[valid_indices], valid_values) # Nearest neighbor
+        itp = DataInterpolations.ConstantInterpolation(x[valid_indices], valid_values)
     elseif method == :linear
-        itp = Interpolations.LinearInterpolation(x[valid_indices], valid_values)
+        itp = DataInterpolations.LinearInterpolation(x[valid_indices], valid_values)
     elseif method == :quadratic
-        # itp = Interpolations.interpolate([x[valid_indices] valid_values], Interpolations.BSpline(Interpolations.Quadratic(Interpolations.InPlace(Interpolations.OnCell()))))
-        throw(ArgumentError("Quadratic interpolation is not implemented yet"))
+        itp = DataInterpolations.QuadraticInterpolation(x[valid_indices], valid_values)
     elseif method == :cubic
-        # itp = Interpolations.interpolate(valid_values, Interpolations.BSpline(Interpolations.Cubic(Interpolations.Free(Interpolations.OnCell()))))
-        throw(ArgumentError("Cubic interpolation is not implemented yet"))
+        itp = DataInterpolations.CubicSpline(x[valid_indices], valid_values)
     else
         throw(ArgumentError("Unsupported interpolation method: $method"))
     end
     # Replace missing values with interpolated values
-    println("Interpolated values: ", itp(NaN_idx))
     n[NaN_idx] .= itp(NaN_idx)
     return n
 end # interpolate
+
+#=
+This function returns views of the array of NN-intervals in a sliding window. The sliding window can be defined in beats or milliseconds.
+:param n: the array that contains the NN-intervals
+:param window_size: the size of the window, default=60 (beats)
+:param stride: the step size of the sliding window, default=1 (beat)
+:param time: the time unit of the window, default=:beats (options: :beats, :ms)
+:param f: reducing function to apply to the window, default=identity
+:return: the views of the array in a sliding window, with the reducing function applied to each window
+=#
+function windowed(n::Array{Float64,1};window_size::Int=60, stride::Int=1, time::Symbol=:beats, f::Function=identity)
+    if time == :beats
+        return [f(n[i:i+window_size-1]) for i in 1:stride:length(n)-window_size+1]
+    elseif time == :ms
+        t = cumsum(n)
+        max_t = t[end] # Record duration in ms
+    else
+        throw(ArgumentError("Unsupported time unit: $time"))
+    end
+    window_starts = [i for i in 1:stride:max_t]
+    window_ends = [i+window_size for i in window_starts]
+    views = []
+    current_window = 1
+    current_view = []
+    for i in 1:length(n)
+        if t[i] >= window_ends[current_window]
+            # println("i: $i, t[i]: $(t[i]), window_ends[current_window]: $(window_ends[current_window])")
+            # println("current_window: $current_window, window_length: $(length(current_view))")
+            current_window += 1
+            push!(views, f(current_view))
+            current_view = []
+        end
+        push!(current_view, n[i])
+    end
+    println("Number of windows: $current_window")
+    return views
+end # windowed
 
 end # module

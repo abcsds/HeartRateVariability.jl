@@ -1,6 +1,7 @@
 module TimeDomain
 
 import Statistics
+import ..Preprocessing
 
 #=
 This function calculates the standard deviation of the NN intervals
@@ -24,6 +25,14 @@ This function calculates the standard deviation of successive differences
 sdsd(diff) = Statistics.std(diff)
 
 #=
+This function calculates the standard deviation of the average NN intervals for
+each 5 min segment of a 24 h HRV recording. ([Read more](https://pubmed.ncbi.nlm.nih.gov/29034226))
+:param n: is the array that contains the NN-intervals
+:return: the sdann
+=#
+sdann(n) = Statistics.std(Preprocessing.windowed(n; window_size=5*60*1000, stride=5*60*1000, time=:ms, f=Statistics.mean))
+
+#=
 This function calculates the percentage of successive NN intervals,
 with an interval smaller than x ms
 :param diff: is the array containing the differences between the NN intervals
@@ -31,6 +40,8 @@ with an interval smaller than x ms
 :return: the percentage of successive intervals with a difference < x ms
 =#
 pnn(diff,x) = nn(diff,x)/(length(diff)+1)*100
+pnn50(diff) = pnn(diff,50)
+pnn20(diff) = pnn(diff,20)
 
 #=
 This function calculates the number of successive NN intervals,
@@ -40,6 +51,8 @@ with an interval smaller than x ms
 :return: the number of successive intervals with a difference < x ms
 =#
 nn(diff,x) = sum(abs.(diff) .> x)
+nn50(diff) = nn(diff,50)
+nn20(diff) = nn(diff,20)
 
 #=
 This function calculates the mean of the NN intervals

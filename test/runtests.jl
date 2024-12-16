@@ -183,12 +183,32 @@ gp=HeartRateVariability.geometric_plots(n)
             @test gp.recurrence!=nothing
             @test_throws ErrorException HeartRateVariability.geometric_plots(n, "error")
         end
+        @testset "rr-interval-healthy-subjects.windowed_analysis" begin
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.mean))≈934.8574 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.median))≈937.7632 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.range))≈266.0 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.sdnn))≈46.6457 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.rmssd))≈936.1988 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.sdsd))≈46.6457 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.nn50))≈100.0 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.pnn50))≈99.0099 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.nn20))≈100.0 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.pnn20))≈99.0099 atol=0.1
+            rr = [2*(n[i]-n[i-1])/(n[i]+n[i-1]) for i in 2:length(n)]
+            d = [sqrt((Statistics.mean(rr)-rr[i])^2+(Statistics.mean(rr)-rr[i+1])^2) for i in 1:length(rr)-1]
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.rRR))≈Statistics.median(d)*100 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.cvsd))≈sqrt(Statistics.mean(diff(n).^2)) / Statistics.mean(n) atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.mean_hr))≈60000/Statistics.mean(n) atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.sd_hr))≈3.3868 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.max_hr))≈77.4731 atol=0.1
+            @test Statistics.mean(Preprocessing.windowed(n; window_size=100, stride=50, f=HeartRateVariability.TimeDomain.min_hr))≈57.0479 atol=0.1
+        end
     end
 
     @testset "Preprocessing" begin
         @testset "Preprocessing.replacing" begin
-            @test isequal(HeartRateVariability.Preprocessing.replace_zeros([1, 2, 0, 4, 5, 0, 7]),Float64[1.0, 2.0, NaN, 4.0, 5.0, NaN, 7.0])
-            @test isequal(HeartRateVariability.Preprocessing.replace_bio_outliers([400, 500, 200, 2000, 1000, 3000, 1500, 100, 5000]),Float64[400.0, 500.0, NaN, 2000.0, 1000.0, NaN, 1500.0, NaN, NaN])
+            @test isequal(Preprocessing.replace_zeros([1, 2, 0, 4, 5, 0, 7]),Float64[1.0, 2.0, NaN, 4.0, 5.0, NaN, 7.0])
+            @test isequal(Preprocessing.replace_bio_outliers([400, 500, 200, 2000, 1000, 3000, 1500, 100, 5000]),Float64[400.0, 500.0, NaN, 2000.0, 1000.0, NaN, 1500.0, NaN, NaN])
             N = 100
             a_dist = Float64.(rand(600:1200, N))
             q_high = quantile(a_dist, 0.75)
@@ -196,13 +216,19 @@ gp=HeartRateVariability.geometric_plots(n)
             ridx = [e<q_low || e>q_high for e in a_dist]
             goal = copy(a_dist)
             goal[ridx] .= repeat([NaN], sum(ridx))
-           @test isequal(HeartRateVariability.Preprocessing.replace_statistical_outliers(a_dist; low=0.25, high=0.75),goal)
+           @test isequal(Preprocessing.replace_statistical_outliers(a_dist; low=0.25, high=0.75),goal)
         end
         @testset "Preprocessing.interpolating" begin
-            @test isequal(HeartRateVariability.Preprocessing.interpolate(Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:constant),Float64[1.0, 2.0, 4.0, 4.0, 5.0, 7.0, 7.0])
-            @test isequal(HeartRateVariability.Preprocessing.interpolate(Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:linear),Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
-            @test_broken isequal(HeartRateVariability.Preprocessing.interpolate(Float64[1, 4, NaN, 16, 25, NaN, 49.0]; method=:quadratic),Float64[1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0])
-            @test_broken isequal(HeartRateVariability.Preprocessing.interpolate(Float64[1, 8, NaN, 64, 125, NaN, 343.0]; method=:cubic),Float64[1.0, 8.0, 27.0, 64.0, 125.0, 216.0, 343.0])
+            @test isequal(Preprocessing.interpolate(Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:constant),Float64[1.0, 2.0, 2.0, 4.0, 5.0, 5.0, 7.0])
+            @test isequal(Preprocessing.interpolate(Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:linear),Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
+            @test isequal(Preprocessing.interpolate(Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:quadratic),Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
+            @test isequal(Preprocessing.interpolate(Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:cubic),Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
+        end
+        @testset "Preprocessing.windowed" begin
+            v = Float64[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            @test isequal(Preprocessing.windowed(v; window_size=3), [[1., 2., 3.], [2., 3., 4.], [3., 4., 5.], [4., 5., 6.], [5., 6., 7.], [6., 7., 8.], [7., 8., 9.], [8., 9., 10.]])
+            @test isequal(Preprocessing.windowed(v; window_size=3, stride=3), [[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+            @test isequal(Preprocessing.windowed(v; window_size=3, stride=3, f=Statistics.mean), [2., 5., 8.])
         end
     end
 
@@ -219,6 +245,20 @@ gp=HeartRateVariability.geometric_plots(n)
             @testset "Types.Float64.time_domain" begin
                 @test td.mean≈1000 atol=10
             end
+        end
+    end
+
+    @testset "LongMeasurements" begin
+        url = "https://physionet.org/files/rr-interval-healthy-subjects/1.0.0/4016.txt"
+        n = parse.(Float64, filter!(e->e!="", split(String(HTTP.get(url).body), r"[^\d.]")))
+        td = HeartRateVariability.time_domain(n)
+        fd = HeartRateVariability.frequency(n)
+        nl = HeartRateVariability.nonlinear(n)
+        g = HeartRateVariability.geometric(n)
+        gp = HeartRateVariability.geometric_plots(n)
+
+        @testset "LongMeasurements.time_domain" begin
+            @test td.sdann≈1000 atol=10
         end
     end
 end

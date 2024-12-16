@@ -1,11 +1,11 @@
 module HeartRateVariability
 
+include("Preprocessing.jl")
 include("TimeDomain.jl")
 include("Input.jl")
 include("Frequency.jl")
 include("Nonlinear.jl")
 include("Geometric.jl")
-include("Preprocessing.jl")
 
 """
     geometric_plots(n,e="mean")
@@ -112,6 +112,7 @@ Results:
 - sdnn: the standard deviation
 - rmssd: the root mean square of successive differences
 - sdsd: the standard deviation of successive differences
+- sdann: the standard deviation of the average NN intervals for each 5 min segment of a 24 h HRV recording. NaN if the record duration is less than 20 minutes
 - nn50: the number of successive NN intervals with an interval smaller than 50 ms
 - pnn50: the percentage of successive NN intervals with an interval smaller than 50 ms
 - nn20: the number of successive NN intervals with an interval smaller than 20 ms
@@ -124,12 +125,15 @@ Results:
 - min_hr: the minimum heart rate
 """
 function time_domain(n::Array{Float64,1})
+    max_t = cumsum(n)[end]/1000/60 # Estimated record duration in minutes
+    max_t >= 1200 ? sdann = TimeDomain.sdann(n) : sdann = NaN # More than 20 hours?
     return (mean=TimeDomain.mean(n),
             median=TimeDomain.median(n),
             range=TimeDomain.range(n),
             sdnn=TimeDomain.sdnn(n),
             rmssd=TimeDomain.rmssd(diff(n)),
             sdsd=TimeDomain.sdsd(diff(n)),
+            sdann=sdann,
             nn50=TimeDomain.nn(diff(n),50),
             pnn50=TimeDomain.pnn(diff(n),50),
             nn20=TimeDomain.nn(diff(n),20),
@@ -185,5 +189,5 @@ function infile(record::String,annotator::String)
     return Input.read_wfdb(record,annotator)
 end # infile
 
-export nonlinear, frequency, time_domain, infile, geometric, geometric_plots, preprocess
+export nonlinear, frequency, time_domain, infile, geometric, geometric_plots, preprocess, Preprocessing
 end # module

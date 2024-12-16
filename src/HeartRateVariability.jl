@@ -5,6 +5,7 @@ include("Input.jl")
 include("Frequency.jl")
 include("Nonlinear.jl")
 include("Geometric.jl")
+include("Preprocessing.jl")
 
 """
     geometric_plots(n,e="mean")
@@ -21,7 +22,8 @@ function geometric_plots(n::Array{Float64,1},e="mean")
     if (e!="mean" && !isa(e,Number))
            error("e has to be a numerical value or 'mean'")
        end
-    return (poincare=Geometric.poincare(n),recurrence=Geometric.recurrence(n,e))
+    return (poincare=Geometric.poincare(n),
+            recurrence=Geometric.recurrence(n,e))
 end # geometric_plots
 
 """
@@ -67,9 +69,12 @@ function nonlinear(n::Array{Float64,1},m::Int64=2,r::Number=6)
     if length(n)<100
         @warn("To obtain a valid value for the hurst coefficient, the length of the data series must be greater than or equal to 100.")
     end
-    return (apen=Nonlinear.apen(n,m,r), sampen=Nonlinear.sampen(n,m,r),
-            hurst=Nonlinear.hurst(n), renyi0=Nonlinear.renyi(n,0),
-            renyi1=Nonlinear.renyi(n,1), renyi2=Nonlinear.renyi(n,2))
+    return (apen=Nonlinear.apen(n,m,r),
+            sampen=Nonlinear.sampen(n,m,r),
+            hurst=Nonlinear.hurst(n),
+            renyi0=Nonlinear.renyi(n,0),
+            renyi1=Nonlinear.renyi(n,1),
+            renyi2=Nonlinear.renyi(n,2))
 end # nonlinear
 
 """
@@ -119,15 +124,36 @@ Results:
 - min_hr: the minimum heart rate
 """
 function time_domain(n::Array{Float64,1})
-    return (mean=TimeDomain.mean(n), median=TimeDomain.median(n),
-            range=TimeDomain.range(n), sdnn=TimeDomain.sdnn(n),
-            rmssd=TimeDomain.rmssd(diff(n)), sdsd=TimeDomain.sdsd(diff(n)),
-            nn50=TimeDomain.nn(diff(n),50), pnn50=TimeDomain.pnn(diff(n),50),
-            nn20=TimeDomain.nn(diff(n),20), pnn20=TimeDomain.pnn(diff(n),20),
-            rRR=TimeDomain.rRR(n), cvsd=TimeDomain.cvsd(n),
-            mean_hr=TimeDomain.mean_hr(n), sd_hr=TimeDomain.sd_hr(n),
-            max_hr=TimeDomain.max_hr(n), min_hr=TimeDomain.min_hr(n))
+    return (mean=TimeDomain.mean(n),
+            median=TimeDomain.median(n),
+            range=TimeDomain.range(n),
+            sdnn=TimeDomain.sdnn(n),
+            rmssd=TimeDomain.rmssd(diff(n)),
+            sdsd=TimeDomain.sdsd(diff(n)),
+            nn50=TimeDomain.nn(diff(n),50),
+            pnn50=TimeDomain.pnn(diff(n),50),
+            nn20=TimeDomain.nn(diff(n),20),
+            pnn20=TimeDomain.pnn(diff(n),20),
+            rRR=TimeDomain.rRR(n),
+            cvsd=TimeDomain.cvsd(n),
+            mean_hr=TimeDomain.mean_hr(n),
+            sd_hr=TimeDomain.sd_hr(n),
+            max_hr=TimeDomain.max_hr(n),
+            min_hr=TimeDomain.min_hr(n))
 end # time_domain
+
+"""
+    preprocess(n)
+This function preprocesses the data by removing missing values and zeros, and interpolating NaN values.
+By default, NN values lower than 300 ms and greater than 2000 ms are replaced by NaN values.
+"""
+function preprocess(n::Array{Union{Number, Missing},1})
+    n=Preprocessing.replace_zeros(n)
+    n=Preprocessing.replace_bio_outliers(n)
+    # n=Preprocessing.replace_statistical_outliers(n)
+    n=Preprocessing.interpolate(n)
+    return n
+end # preprocess
 
 """
     infile(file)
@@ -159,5 +185,5 @@ function infile(record::String,annotator::String)
     return Input.read_wfdb(record,annotator)
 end # infile
 
-export nonlinear, frequency, time_domain, infile, geometric
+export nonlinear, frequency, time_domain, infile, geometric, geometric_plots, preprocess
 end # module

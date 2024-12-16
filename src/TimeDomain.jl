@@ -75,7 +75,7 @@ function rRR(n)
 end # rRR
 
 #=
-This function calculates the CVSD of the NN intervals
+This function calculates the coefficient of variation of the successive differences of the NN intervals.
 :param n: is the array that contains the NN-intervals
 :return: the CVSD
 =#

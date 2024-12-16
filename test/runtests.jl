@@ -184,4 +184,41 @@ gp=HeartRateVariability.geometric_plots(n)
             @test_throws ErrorException HeartRateVariability.geometric_plots(n, "error")
         end
     end
+
+    @testset "Preprocessing" begin
+        @testset "Preprocessing.replacing" begin
+            @test isequal(HeartRateVariability.Preprocessing.replace_zeros([1, 2, 0, 4, 5, 0, 7]),Float64[1.0, 2.0, NaN, 4.0, 5.0, NaN, 7.0])
+            @test isequal(HeartRateVariability.Preprocessing.replace_bio_outliers([400, 500, 200, 2000, 1000, 3000, 1500, 100, 5000]),Float64[400.0, 500.0, NaN, 2000.0, 1000.0, NaN, 1500.0, NaN, NaN])
+            N = 100
+            a_dist = Float64.(rand(600:1200, N))
+            q_high = quantile(a_dist, 0.75)
+            q_low = quantile(a_dist, 0.25)
+            ridx = [e<q_low || e>q_high for e in a_dist]
+            goal = copy(a_dist)
+            goal[ridx] .= repeat([NaN], sum(ridx))
+           @test isequal(HeartRateVariability.Preprocessing.replace_statistical_outliers(a_dist; low=0.25, high=0.75),goal)
+        end
+        @testset "Preprocessing.interpolating" begin
+            @test isequal(HeartRateVariability.Preprocessing.interpolate(Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:constant),Float64[1.0, 2.0, 4.0, 4.0, 5.0, 7.0, 7.0])
+            @test isequal(HeartRateVariability.Preprocessing.interpolate(Float64[1, 2, NaN, 4, 5, NaN, 7.0]; method=:linear),Float64[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
+            @test_broken isequal(HeartRateVariability.Preprocessing.interpolate(Float64[1, 4, NaN, 16, 25, NaN, 49.0]; method=:quadratic),Float64[1.0, 4.0, 9.0, 16.0, 25.0, 36.0, 49.0])
+            @test_broken isequal(HeartRateVariability.Preprocessing.interpolate(Float64[1, 8, NaN, 64, 125, NaN, 343.0]; method=:cubic),Float64[1.0, 8.0, 27.0, 64.0, 125.0, 216.0, 343.0])
+        end
+    end
+
+    @testset "Types" begin
+        @testset "Types.Float64" begin
+            N = 1000
+            n = Float64.(randn(N) .* 100 .+ 1000)
+            td = HeartRateVariability.time_domain(n)
+            fd = HeartRateVariability.frequency(n)
+            nl = HeartRateVariability.nonlinear(n)
+            g = HeartRateVariability.geometric(n)
+            gp = HeartRateVariability.geometric_plots(n)
+
+            @testset "Types.Float64.time_domain" begin
+                @test td.mean≈1000 atol=10
+            end
+        end
+    end
 end

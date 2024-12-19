@@ -48,7 +48,9 @@ function geometric(n::Array{Float64,1})
             sd1_sd2_area=Geometric.sd1_sd2_area(n),
             csi=Geometric.csi(n),
             cvi=Geometric.cvi(n),
-            ccsi=Geometric.ccsi(n))
+            ccsi=Geometric.ccsi(n),
+            ti=Geometric.triangular_index(n),
+            tinn=Geometric.tinn(n))
 end # geometric
 
 """
@@ -126,18 +128,19 @@ Results:
 """
 function time_domain(n::Array{Float64,1})
     max_t = cumsum(n)[end]/1000/60 # Estimated record duration in minutes
-    max_t >= 1200 ? sdann = TimeDomain.sdann(n) : sdann = NaN # More than 20 hours?
+    max_t <= 1200 && @warn("The record duration is less than 20 minutes. Features that require a 24 h recording will be computational estimates.")
+    dn = diff(n)
     return (mean=TimeDomain.mean(n),
             median=TimeDomain.median(n),
             range=TimeDomain.range(n),
             sdnn=TimeDomain.sdnn(n),
-            rmssd=TimeDomain.rmssd(diff(n)),
-            sdsd=TimeDomain.sdsd(diff(n)),
-            sdann=sdann,
-            nn50=TimeDomain.nn(diff(n),50),
-            pnn50=TimeDomain.pnn(diff(n),50),
-            nn20=TimeDomain.nn(diff(n),20),
-            pnn20=TimeDomain.pnn(diff(n),20),
+            rmssd=TimeDomain.rmssd(dn),
+            sdsd=TimeDomain.sdsd(dn),
+            sdann=TimeDomain.sdann(n),
+            nn50=TimeDomain.nn(dn,50),
+            pnn50=TimeDomain.pnn(dn,50),
+            nn20=TimeDomain.nn(dn,20),
+            pnn20=TimeDomain.pnn(dn,20),
             rRR=TimeDomain.rRR(n),
             cvsd=TimeDomain.cvsd(n),
             mean_hr=TimeDomain.mean_hr(n),
@@ -148,10 +151,10 @@ end # time_domain
 
 """
     preprocess(n)
-This function preprocesses the data by removing missing values and zeros, and interpolating NaN values.
+This function processes the data by removing missing values and zeros, and interpolating NaN values.
 By default, NN values lower than 300 ms and greater than 2000 ms are replaced by NaN values.
 """
-function preprocess(n::Array{Union{Number, Missing},1})
+function preprocess(n::Array{T,1}) where T<:Real
     n=Preprocessing.replace_zeros(n)
     n=Preprocessing.replace_bio_outliers(n)
     # n=Preprocessing.replace_statistical_outliers(n)

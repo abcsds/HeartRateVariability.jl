@@ -13,7 +13,9 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 Trapz = "592b5752-818d-11e9-1e9a-2b8ca4a44cd1"
 
 [compat]
+BenchmarkTools = "1.5.0"
 DataInterpolations = "6.6.0"
+Debugger = "0.7.10"
 HTTP = "1.10.13"
 Images = "0.22, 0.23"
 LombScargle = "0.5, 1.0"
@@ -25,6 +27,8 @@ julia = "1"
 [extras]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 
 [targets]
-test = ["Test", "HTTP"]
+test = ["Test", "HTTP", "Debugger", "BenchmarkTools"]

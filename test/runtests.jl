@@ -2,6 +2,7 @@ using HeartRateVariability
 using Test
 using HTTP
 using Statistics
+using BenchmarkTools
 
 n=HeartRateVariability.infile("e1304.txt")
 td=HeartRateVariability.time_domain(n)
@@ -86,6 +87,8 @@ gp=HeartRateVariability.geometric_plots(n)
         @test g.csi≈9.8 atol=0.1
         @test g.cvi≈4.7840 atol=0.1
         @test g.ccsi≈30268.0552 atol=0.1
+        @test g.ti≈20.8868 atol=0.1
+        @test g.tinn≈288 atol=0.1
     end
     @testset "HeartRateVariability.geometric_plots" begin
         @test gp.poincare!=nothing
@@ -177,6 +180,8 @@ gp=HeartRateVariability.geometric_plots(n)
             @test g.csi≈2.0401 atol=0.1
             @test g.cvi≈4.7319 atol=0.1
             @test g.ccsi≈2707.0118 atol=0.1
+            @test g.ti≈15.3846 atol=0.1
+            @test g.tinn≈232 atol=0.1
         end
         @testset "rr-interval-healthy-subjects.geometric_plots" begin
             @test gp.poincare!=nothing
@@ -250,15 +255,15 @@ gp=HeartRateVariability.geometric_plots(n)
 
     @testset "LongMeasurements" begin
         url = "https://physionet.org/files/rr-interval-healthy-subjects/1.0.0/4016.txt"
-        n = parse.(Float64, filter!(e->e!="", split(String(HTTP.get(url).body), r"[^\d.]")))
+        hrv = parse.(Float64, filter!(e->e!="", split(String(HTTP.get(url).body), r"[^\d.]")))
+        n = hrv
         td = HeartRateVariability.time_domain(n)
         fd = HeartRateVariability.frequency(n)
-        nl = HeartRateVariability.nonlinear(n)
+        # nl = HeartRateVariability.nonlinear(n) # Very slow!
         g = HeartRateVariability.geometric(n)
-        gp = HeartRateVariability.geometric_plots(n)
 
         @testset "LongMeasurements.time_domain" begin
-            @test td.sdann≈1000 atol=10
+            @test td.sdann≈49.6634 atol=0.1
         end
     end
 end

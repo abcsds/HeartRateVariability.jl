@@ -29,8 +29,19 @@ This function turns any rr-interval outside the 2.5th and 97.5th percentiles int
 :return: the array without the intervals outside the 2.5th and 97.5th percentiles
 =#
 function replace_statistical_outliers(n::Array{T,1};low::Float64=0.025,high::Float64=0.975) where T<:Real
-    return Float64[e<Statistics.quantile(n,low) || e>Statistics.quantile(n,high) ? NaN : e for e in n]
+    l = Statistics.quantile(n,low)
+    h = Statistics.quantile(n,high)
+    return Float64[e<l || e>h ? NaN : e for e in n]
 end # replace_statistical_outliers
+
+#=
+This function strips any NaN values from the extremes of the array of NN-intervals.
+:param n: the array that contains the NN-intervals
+:return: the array without the NaN values at the extremes
+=#
+function strip_extremes(n::Array{Float64,1})
+    return n[findfirst(!isnan, n):findlast(!isnan, n)]
+end # strip_extremes
 
 #=
 This function interpolates nan values
@@ -39,6 +50,7 @@ This function interpolates nan values
 :return: the array with the interpolated values
 =#
 function interpolate(n::Array{Float64,1}; method::Symbol=:linear)
+    n = strip_extremes(n)
     # Check if the number of missing values is valid
     n_nan = count(isnan, n)
     n_nan > length(n) / 2 && throw(ArgumentError("Too many missing values: $n_nan out of $(length(n))"))
@@ -78,29 +90,22 @@ This function returns views of the array of NN-intervals in a sliding window. Th
 =#
 function windowed(n::Array{Float64,1};window_size::Int=60, stride::Int=1, time::Symbol=:beats, f::Function=identity)
     if time == :beats
-        return [f(n[i:i+window_size-1]) for i in 1:stride:length(n)-window_size+1]
+        return [f(view(n,i:i+window_size-1)) for i in 1:stride:length(n)-window_size+1]
     elseif time == :ms
         t = cumsum(n)
         max_t = t[end] # Record duration in ms
     else
         throw(ArgumentError("Unsupported time unit: $time"))
     end
-    window_starts = [i for i in 1:stride:max_t]
-    window_ends = [i+window_size for i in window_starts]
-    views = []
-    current_window = 1
-    current_view = []
-    for i in 1:length(n)
-        if t[i] >= window_ends[current_window]
-            # println("i: $i, t[i]: $(t[i]), window_ends[current_window]: $(window_ends[current_window])")
-            # println("current_window: $current_window, window_length: $(length(current_view))")
-            current_window += 1
-            push!(views, f(current_view))
-            current_view = []
+    window_starts = 1:stride:max_t
+    window_ends = window_starts .+ window_size
+    views = Vector{Any}(undef, length(window_starts))
+    for (i, (start, stop)) in enumerate(zip(window_starts, window_ends))
+        idx = findall(x -> x >= start && x < stop, t)
+        if !isempty(idx)
+            views[i] = f(view(n, idx))
         end
-        push!(current_view, n[i])
     end
-    println("Number of windows: $current_window")
     return views
 end # windowed
 

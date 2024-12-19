@@ -3,6 +3,7 @@ module Geometric
 import Plots
 import Images
 import Statistics
+import StatsBase
 
 #=
 This function creates a Poincaré plot
@@ -106,5 +107,77 @@ This function calculates the corrected Cardiac Sympathetic Index (CSI).
 function ccsi(n)
     return ((4*sd2(n))^2)/sd1(n)
 end # ccsi
+
+#=
+This function returns the histogram of the array x given a range of bins.
+:param x: the array that contains the NN-intervals
+:param bins: the range of bins
+=#
+function histogram(x, bins)
+    h = StatsBase.fit(StatsBase.Histogram, x, bins)
+    return h
+end
+
+#=
+This function calculates the triangular index of the HRV: Integral of the density of the RR interval histogram
+divided by its height at the mode.
+:param n: the array that contains the NN-intervals
+=#
+function triangular_index(n)
+    return length(n) / maximum(histogram(n, range(300, 2000, step=8)).weights)
+end # triangular_index
+
+#=
+This function calculates the TINN index of the HRV: The width of the RR interval histogram.
+[Read more](https://www.ahajournals.org/doi/full/10.1161/01.CIR.93.5.1043)[^1]
+[^1]: Heart Rate Variability | Circulation. (n.d.). Retrieved December 17, 2024, from https://www.ahajournals.org/doi/full/10.1161/01.CIR.93.5.1043
+:param n: the array that contains the NN-intervals
+=#
+function tinn(nn)
+    h = histogram(nn, range(300, 2000, step=8))
+    iX = argmax(h.weights)
+    X = [h.edges[1];][iX]
+    Y = maximum(h.weights)
+    N_range = X<=300 ? [300] : range(300, X, step=8)
+    M_range = X>=2000 ? [2000] : range(X, 2000, step=8)
+    min_sse = 1e10
+    vars = []
+    for (i,n) in enumerate(N_range)
+        for (j,m) in enumerate(M_range)
+            D_edges = h.edges[1]
+            D_weights = h.weights
+            # @assert length(D_edges) == length(D_weights)
+            iN = findfirst(x->x==n, D_edges)
+            iM = findfirst(x->x==m, D_edges)
+            @assert iM <= length(D_edges)
+
+            Q_weights = zeros(length(D_weights))
+            a = iX - iN
+            b = iM - iX
+            a == 0 && (redg = [])
+            a == 1 && (Q_weights[iX] = Y)
+            a >= 2 && (Q_weights[iN:iX] = [i for i in LinRange(0, Y, iX-iN+1)])
+
+            b == 0 && (fedg = [])
+            b == 1 && (Q_weights[iX] = Y)
+            b >= 2 && (Q_weights[iX:iM-1] = [i for i in LinRange(Y, 0, iM-iX)])
+            Q_edges = D_edges
+            @assert length(D_weights) == length(Q_weights)
+            # Catch Float overflow
+            sse = Inf
+            try
+                sse = sum((Q_weights .- D_weights) .^ 2)
+            catch
+                @debug "Overflow, M: $m, N: $n"
+            end
+            if sse < min_sse
+                min_sse = sse
+                vars = [n, m, i, j]
+            end
+        end
+    end
+    N, M = vars[1], vars[2]
+    return M - N
+end # tinn
 
 end # module

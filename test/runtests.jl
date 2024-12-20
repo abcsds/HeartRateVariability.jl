@@ -12,7 +12,6 @@ g=HeartRateVariability.geometric(n)
 gp=HeartRateVariability.geometric_plots(n)
 
 @testset verbose=true "HeartRateVariability.jl" begin
-
     @testset "HeartRateVariability.infile" begin
         @test HeartRateVariability.infile("e1304","atr")==n
     end
@@ -234,6 +233,25 @@ gp=HeartRateVariability.geometric_plots(n)
             @test isequal(Preprocessing.windowed(v; window_size=3), [[1., 2., 3.], [2., 3., 4.], [3., 4., 5.], [4., 5., 6.], [5., 6., 7.], [6., 7., 8.], [7., 8., 9.], [8., 9., 10.]])
             @test isequal(Preprocessing.windowed(v; window_size=3, stride=3), [[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
             @test isequal(Preprocessing.windowed(v; window_size=3, stride=3, f=Statistics.mean), [2., 5., 8.])
+        end
+        @testset "Preprocessing.ectopic_beats" begin
+            url = "https://physionet.org/files/rr-interval-healthy-subjects/1.0.0/000.txt"
+            hrv = parse.(Float64, filter!(e->e!="", split(String(HTTP.get(url).body), r"[^\d.]")))
+            n = hrv[1:1000]
+            @test sum(isnan.(n))==0
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:malik)))==2
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:kamath)))==4
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:acar, threshold=0.2)))==4
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:karlsson, threshold=0.2)))==501
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:custom, threshold=0.2)))==607
+
+            n = hrv[1000:2000]
+            @test sum(isnan.(n))==0
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:malik)))==2
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:kamath)))==5
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:acar, threshold=0.2)))==5
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:karlsson, threshold=0.2)))==500
+            @test sum(isnan.(Preprocessing.replace_ectopic_beats(n; method=:custom, threshold=0.2)))==605
         end
     end
 

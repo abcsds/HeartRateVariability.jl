@@ -35,6 +35,56 @@ function replace_statistical_outliers(n::Array{T,1};low::Float64=0.025,high::Flo
 end # replace_statistical_outliers
 
 #=
+This function replaces ectopic beats with NaN values.
+:param n: the array that contains the NN-intervals
+:method: the method to replace the ectopic beats, default=:malik (options: :malik, :kamath, :acar, :karlsson, :custom)
+:return: the array without the ectopic beats
+
+References:
+    Methods:
+    - :malik: Malik, M., Bigger, J. T., & Camm, A. J. (1996). Heart rate variability: standards of measurement, physiological interpretation, and clinical use. European Heart Journal, 17(3), 354–381. https://doi.org/10.1093/oxfordjournals.eurheartj.a014868
+    - :kamath: Kamath M. V., Fallen E. L. (1995). Correction of the heart rate variability signal for ectopics and missing beats, in Heart Rate Variability, eds M. Malik, Camm A. J. (Armonk, NY: Futura Publishing Co. Inc.), 75–85.
+    - :acar: Acar, B., Savelieva, I., Hemingway, H., & Malik, M. (2000). Automatic ectopic beat elimination in short-term heart rate variability measurement. Computer Methods and Programs in Biomedicine, 63(2), 123–131. https://doi.org/10.1016/S0169-2607(00)00081-X
+    - :karlsson: Karlsson, M., Hörnsten, R., Rydberg, A., & Wiklund, U. (2012). Automatic filtering of outliers in RR intervals before analysis of heart rate variability in Holter recordings: A comparison with carefully edited data. Biomedical Engineering Online, 11, 2. https://doi.org/10.1186/1475-925X-11-2
+=#
+function replace_ectopic_beats(n::Array{Float64,1}; method::Symbol=:malik, threshold::Float64=0.2)
+    method ∉ [:malik, :kamath, :acar, :karlsson, :custom] && throw(ArgumentError("Unsupported method: $method"))
+    if method == :acar
+        n_outliers = 0
+        for i in 9:length(n)
+            μ_acar = Statistics.mean(filter(!isnan, n[i-8:i]))
+            abs(μ_acar - n[i]) >= threshold * μ_acar && (n[i] = NaN; n_outliers += 1)
+        end
+    elseif method == :karlsson
+        n_outliers = 0
+        for i in 1:length(n)-2
+            μ_pn = n[i] + n[i+2] / 2
+            abs(μ_pn - n[i+1]) >= threshold * μ_pn && (n[i+1] = NaN; n_outliers += 1)
+        end
+    else
+        n_outliers = 0
+        last_outlier = false
+        for i in 2:length(n)-1
+            # last_outlier && last_outlier = false && continue
+            if last_outlier
+                last_outlier = false
+                continue
+            end
+            if method == :malik
+                abs(n[i] - n[i+1]) <= 0.2 * n[i] || (n[i] = NaN; last_outlier = true; n_outliers += 1)
+            elseif method == :kamath
+                0 <= (n[i+1] - n[i]) <= 0.325 * n[i] || 0 <= (n[i] - n[i+1]) <= 0.245 * n[i] || (n[i] = NaN; last_outlier = true; n_outliers += 1)
+            elseif method == :custom
+                abs(n[i] - n[i+1]) <= threshold * n[i] || (n[i] = NaN; last_outlier = true; n_outliers += 1)
+            end
+
+        end
+    end
+    @debug "Number of outliers: $n_outliers"
+    return n
+end # replace_ectopic_beats
+
+#=
 This function strips any NaN values from the extremes of the array of NN-intervals.
 :param n: the array that contains the NN-intervals
 :return: the array without the NaN values at the extremes

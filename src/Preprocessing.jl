@@ -47,7 +47,7 @@ References:
     - :acar: Acar, B., Savelieva, I., Hemingway, H., & Malik, M. (2000). Automatic ectopic beat elimination in short-term heart rate variability measurement. Computer Methods and Programs in Biomedicine, 63(2), 123–131. https://doi.org/10.1016/S0169-2607(00)00081-X
     - :karlsson: Karlsson, M., Hörnsten, R., Rydberg, A., & Wiklund, U. (2012). Automatic filtering of outliers in RR intervals before analysis of heart rate variability in Holter recordings: A comparison with carefully edited data. Biomedical Engineering Online, 11, 2. https://doi.org/10.1186/1475-925X-11-2
 =#
-function replace_ectopic_beats(n::Array{Float64,1}; method::Symbol=:malik, threshold::Float64=0.2)
+function replace_ectopic_beats!(n::Array{Float64,1}; method::Symbol=:malik, threshold::Float64=0.2)
     method ∉ [:malik, :kamath, :acar, :karlsson, :custom] && throw(ArgumentError("Unsupported method: $method"))
     if method == :acar
         n_outliers = 0
@@ -83,6 +83,9 @@ function replace_ectopic_beats(n::Array{Float64,1}; method::Symbol=:malik, thres
     @debug "Number of outliers: $n_outliers"
     return n
 end # replace_ectopic_beats
+function replace_ectopic_beats(n::Array{Float64,1}; method::Symbol=:malik, threshold::Float64=0.2)
+    replace_ectopic_beats!(copy(n), method=method, threshold=threshold)
+end # replace_ectopic_beats
 
 #=
 This function strips any NaN values from the extremes of the array of NN-intervals.
@@ -96,10 +99,10 @@ end # strip_extremes
 #=
 This function interpolates nan values
 :param n: the array that contains the NN-intervals
-:param method: the interpolation method, default=:linear (options: :linear, :spline)
+:param method: the interpolation method, default=:linear (options: :constant, :linear, :quadratic, :cubic)
 :return: the array with the interpolated values
 =#
-function interpolate(n::Array{Float64,1}; method::Symbol=:linear)
+function interpolate_nans!(n::Array{Float64,1}; method::Symbol=:linear)
     n = strip_extremes(n)
     # Check if the number of missing values is valid
     n_nan = count(isnan, n)
@@ -127,6 +130,35 @@ function interpolate(n::Array{Float64,1}; method::Symbol=:linear)
     # Replace missing values with interpolated values
     n[NaN_idx] .= itp(NaN_idx)
     return n
+end # interpolate_nans
+function interpolate_nans(n::Array{Float64,1}; method::Symbol=:linear)
+    interpolate_nans!(copy(n), method=method)
+end # interpolate_nans
+
+#=
+This function interpolates the NN-intervals to fit a given sampling rate.
+:param n: the array that contains the NN-intervals
+:param method: the interpolation method, default=:linear (options: :constant, :linear, :quadratic, :cubic)
+:param fs: the sampling rate, default=10 Hz
+:return: the array with the interpolated values
+=#
+function interpolate(n::Array{Float64,1}; method::Symbol=:linear, fs::Int=10)
+    sum(isnan.(n)) > 0 && throw(ArgumentError("The array contains $(sum(isnan.(n))) NaN values."))
+    t = cumsum(n) .- n[1]
+    if method == :constant
+        itp = DataInterpolations.ConstantInterpolation(t, n, extrapolate=true)
+    elseif method == :linear
+        itp = DataInterpolations.LinearInterpolation(t, n, extrapolate=true)
+    elseif method == :quadratic
+        itp = DataInterpolations.QuadraticInterpolation(t, n, extrapolate=true)
+    elseif method == :cubic
+        itp = DataInterpolations.CubicSpline(t, n, extrapolate=true)
+    else
+        throw(ArgumentError("Unsupported interpolation method: $method"))
+    end
+    new_t = 0:1000/fs:t[end]
+
+    return itp.(new_t)
 end # interpolate
 
 #=

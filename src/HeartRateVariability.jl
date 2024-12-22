@@ -92,13 +92,46 @@ Results:
 - lfhf_ratio: the lf/hf ratio
 - tp: the total power
 """
-function frequency(n::Array{Float64,1})
-    ls=Frequency.lomb_scargle(n)
+function frequency(n::Array{Float64,1}; method::Symbol=:lomb_scargle, fs::Int=10)
+    method ∉ [:lomb_scargle, :welch] && throw(ArgumentError("Unsupported method: $method"))
+    max_t = cumsum(n)[end] / 1000 # Record duration in seconds
+    if method == :lomb_scargle
+        ls=Frequency.lomb_scargle(n)
+        ulf=NaN
+    elseif method == :welch
+        ls=Frequency.welch(n, method=:linear, fs=4)
+        max_t > 86000 ? ulf=Frequency.get_power(ls,ls.freq[1],0.003) : ulf=NaN
+    end
     vlf=Frequency.get_power(ls.freq,ls.power,0.003,0.04)
     lf=Frequency.get_power(ls.freq,ls.power,0.04,0.15)
     hf=Frequency.get_power(ls.freq,ls.power,0.15,0.4)
     tp=vlf+lf+hf
-    return (vlf=vlf, lf=lf, hf=hf, lfhf_ratio=lf/hf, tp=tp)
+    lf_idx=findall(x->x>=0.04 && x<0.15,ls.freq)
+    lf_freqs=ls.freq[lf_idx]
+    lf_powers=ls.power[lf_idx]
+    lf_peak=lf_freqs[argmax(lf_powers)]
+    hf_idx=findall(x->x>=0.15 && x<0.4,ls.freq)
+    hf_freqs=ls.freq[hf_idx]
+    hf_powers=ls.power[hf_idx]
+    hf_peak=hf_freqs[argmax(hf_powers)]
+    lf_relative=lf/tp
+    hf_relative=hf/tp
+    lf_percent=lf/(tp) * 100
+    hf_percent=hf/(tp) * 100
+    return (
+        ulf=ulf,
+        vlf=vlf,
+        lf=lf,
+        hf=hf,
+        lfhf_ratio=lf/hf,
+        tp=tp,
+        lf_peak=lf_peak,
+        lf_relative=lf_relative,
+        lf_percent=lf_percent,
+        hf_peak=hf_peak,
+        hf_relative=hf_relative,
+        hf_percent=hf_percent
+        )
 end # frequency
 
 """
@@ -128,7 +161,6 @@ Results:
 """
 function time_domain(n::Array{Float64,1})
     max_t = cumsum(n)[end]/1000/60 # Estimated record duration in minutes
-    max_t <= 1200 && @warn("The record duration is less than 20 minutes. Features that require a 24 h recording will be computational estimates.")
     dn = diff(n)
     return (mean=TimeDomain.mean(n),
             median=TimeDomain.median(n),
@@ -158,7 +190,7 @@ function preprocess(n::Array{T,1}) where T<:Real
     n=Preprocessing.replace_zeros(n)
     n=Preprocessing.replace_bio_outliers(n)
     # n=Preprocessing.replace_statistical_outliers(n)
-    n=Preprocessing.interpolate(n)
+    Preprocessing.interpolate_nans!(n)
     return n
 end # preprocess
 

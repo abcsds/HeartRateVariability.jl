@@ -1,6 +1,7 @@
 .DS_Store
 /Manifest.toml
 /docs/Manifest.toml
+/test/Manifest.toml
 /dev/
 /docs/build/
 .Rhistory

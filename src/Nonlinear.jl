@@ -2,6 +2,7 @@ module Nonlinear
 
 import StatsBase
 import Statistics
+import DFA
 
 #=
 This function calculates the approximate entropy
@@ -123,10 +124,7 @@ function hurst(n)
         end
     end
     A=Array{Float64}([ws ones(length(RS))])
-    RSlog=[]
-    for r in RS
-        push!(RSlog,log10(r))
-    end
+    RSlog=log10.(RS)
     B=Array{Float64}(RSlog)
     H,c=A\B
     c=exp10(c)
@@ -152,5 +150,24 @@ function get_rs(n)
         return R/S
     end
 end # get_rs
+
+#=
+This function calculates the detrended fluctuation analysis
+:param n: the array that contains the NN-intervals
+:param window_size: the size of the window, default=10
+:return: the detrended fluctuation analysis
+=#
+function dfa(n)
+    scales, fluc = DFA.dfa(n, boxmax=64, boxmin=4, boxratio=2, overlap=0.0)
+    log_scales = log10.(scales)
+    log_fluc = log10.(fluc)
+    ntercept, α1 = DFA.polyfit(log_scales, log_fluc)
+        
+    scales, fluc = DFA.dfa(n, boxmax=16, boxmin=4, boxratio=2, overlap=0.0 )
+    log_scales = log10.(scales)
+    log_fluc = log10.(fluc)
+    intercept, α2 = DFA.polyfit(log_scales, log_fluc)
+    return α1, α2
+end # dfa
 
 end # module

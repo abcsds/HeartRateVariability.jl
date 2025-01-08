@@ -68,15 +68,16 @@ Results:
 - renyi0, renyi1, renyi2: the Rényi entropy of order 0,1 and 2
 """
 function nonlinear(n::Array{Float64,1},m::Int64=2,r::Number=6)
-    if length(n)<100
-        @warn("To obtain a valid value for the hurst coefficient, the length of the data series must be greater than or equal to 100.")
-    end
+    length(n)<100 && @warn("To obtain a valid value for the hurst coefficient, the length of the data series must be greater than or equal to 100.")
+    a1, a2 = Nonlinear.dfa(n)
     return (apen=Nonlinear.apen(n,m,r),
             sampen=Nonlinear.sampen(n,m,r),
             hurst=Nonlinear.hurst(n),
             renyi0=Nonlinear.renyi(n,0),
             renyi1=Nonlinear.renyi(n,1),
-            renyi2=Nonlinear.renyi(n,2))
+            renyi2=Nonlinear.renyi(n,2),
+            a1=a1,
+            a2=a2)
 end # nonlinear
 
 """

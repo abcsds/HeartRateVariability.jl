@@ -79,6 +79,8 @@ gp=HeartRateVariability.geometric_plots(n)
         @test nl.renyi0≈-6.82 atol=0.1
         @test nl.renyi1≈-6.83 atol=0.1
         @test nl.renyi2≈-6.84 atol=0.1
+        @test nl.a1≈1.144625 atol=1e-6
+        @test nl.a2≈0.931385 atol=1e-6
 
         #testing if get_rs from module Nonlinear returns 0 when S or R is 0
         @test HeartRateVariability.Nonlinear.get_rs(ones(100))==0
@@ -204,6 +206,8 @@ gp=HeartRateVariability.geometric_plots(n)
             @test nl.renyi0≈-6.8375 atol=1e-4
             @test nl.renyi1≈-6.8399 atol=1e-4
             @test nl.renyi2≈-6.8424 atol=1e-4
+            @test nl.a1≈0.961443 atol=1e-6
+            @test nl.a2≈0.672300 atol=1e-6
         end
         @testset "rr-interval-healthy-subjects.geometric" begin
             @test g.sd1≈40.6497 atol=1e-4
@@ -321,7 +325,5 @@ gp=HeartRateVariability.geometric_plots(n)
         end
         # nl = HeartRateVariability.nonlinear(n) # Very slow!
         g = HeartRateVariability.geometric(n)
-
-
     end
 end

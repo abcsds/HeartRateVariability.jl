@@ -1,20 +1,25 @@
-# Use the official Julia base image
-FROM julia:1.11.1
+# Use the official julia 1.11 image as a base
+FROM julia:1.11-bookworm
 
-# Set up the global Julia environment
-WORKDIR /tmp
-
-# Copy the Project.toml and Manifest.toml into the global environment
-COPY . /tmp
-
-# Preinstall the dependencies in the global environment
-RUN julia --project=. -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"
-
-# Set the default working directory for the container
+# Create a working directory within the container
 WORKDIR /workdir
 
-# Expose port 8000
-EXPOSE 8000
 
-# Set the default command
-CMD ["julia", "--project=."]
+# Install system dependencies
+# https://archive.physionet.org/physiotools/wfdb-linux-quick-start.shtml
+RUN apt-get update && \
+    apt-get -y install \
+    gcc \
+    make 
+    # libcurl4-openssl-dev \
+    # libexpat1-dev
+
+ADD https://www.physionet.org/physiotools/archives/wfdb-10.7/wfdb-10.7.0.tar.gz wfdb-10.7.0.tar.gz
+RUN tar -xzf wfdb-10.7.0.tar.gz && rm wfdb-10.7.0.tar.gz
+RUN cd wfdb-10.7.0 && ./configure && make install && cd ..
+
+COPY . /workdir
+# Preinstall the dependencies in the global environment
+RUN julia -e 'using Pkg; Pkg.activate("/workdir"); Pkg.instantiate()'
+
+ENTRYPOINT [ "bash", "-c", "-l", "/usr/local/julia/bin/julia --project=. -i" ]

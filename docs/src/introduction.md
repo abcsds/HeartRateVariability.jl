@@ -7,6 +7,12 @@ The time-domain analysis contains the following analysis methods:
 ###### Mean:
 This is the mean value of the RR intervals. It is calculated by summing all NN intervals and then dividing by their number. [Read more](https://en.wikipedia.org/wiki/Mean#Arithmetic_mean_(AM))
 
+###### Median:
+This is the median value of the RR intervals. It is calculated by sorting the NN intervals and then selecting the middle value. [Read more](https://en.wikipedia.org/wiki/Median)
+
+###### Range:
+This is the difference between the maximum and minimum NN intervals. [Read more](https://en.wikipedia.org/wiki/Range_(statistics))
+
 ###### SDNN:
 This is the standard deviation of the NN intervals. [Read more](https://en.wikipedia.org/wiki/Heart_rate_variability#Time-domain_methods[36])
 
@@ -37,6 +43,21 @@ where n is the number of RR intervals.\
 The HRV is measured by the median of the euclidean distances of the relative RR intervals to the average of the relative RR intervals. [Read more](https://marcusvollmer.github.io/HRV/files/paper_method.pdf) [^1]
 
 [^1]: Vollmer, M. (2015). A robust, simple and reliable measure of heart rate variability using relative RR intervals. 2015 Computing in Cardiology Conference (CinC), 609–612. https://doi.org/10.1109/CIC.2015.7410984
+
+##### CVSD
+The coefficient of variation of successive differences is calculated by dividing the standard deviation of the differences between successive NN intervals by the mean of the NN intervals. That is, the RMSSD divided by the mean NN intervals.
+
+##### MeanHR
+The mean heart rate is calculated by dividing 60 by the mean NN intervals.
+
+##### SDHR
+The standard deviation of the heart rate is calculated by dividing 60 by the standard deviation of the NN intervals.
+
+##### MaxHR
+The maximum heart rate is calculated by dividing 60 by the minimum NN intervals.
+
+##### MinHR
+The minimum heart rate is calculated by dividing 60 by the maximum NN intervals.
 
 # Frequency-Domain Analysis
 
@@ -70,6 +91,17 @@ The Hurst exponent is used to measure the long-term memory of time series. [Read
 The renyi entropy is a measure of diversity and forms the basis of the concept of generalized dimensions. [Read more](https://en.wikipedia.org/wiki/R%C3%A9nyi_entropy)
 
 # Geometric Analysis
+
+###### SD1 and SD2
+These are the standard deviations of the Poincaré plot along the line of identity and perpendicular to it, respectively. The ratio between them, and area covered by them are also calculated[^2, ^3]. [Read more](https://en.wikipedia.org/wiki/Poincar%C3%A9_plot)
+
+[^2]: Henriques, T. S., Mariani, S., Burykin, A., Rodrigues, F., Silva, T. F., & Goldberger, A. L. (2016). Multiscale Poincaré plots for visualizing the structure of heartbeat time series. BMC Medical Informatics and Decision Making, 16(1), 17. https://doi.org/10.1186/s12911-016-0252-0
+[^3]: Tayel, M. B., & AlSaba, E. I. (2015). Poincaré Plot for Heart Rate Variability. 9(9).
+
+###### Cardiac Sympathetic Index
+This is a measure of the balance between the sympathetic and parasympathetic nervous systems. It uses the ratio of the SD1 and SD2 features of the Poincaré plot[^4].
+
+[^4]: Jeppesen, J., Beniczky, S., Johansen, P., Sidenius, P., & Fuglsang-Frederiksen, A. (2014). Using Lorenz plot and Cardiac Sympathetic Index of heart rate variability for detecting seizures for patients with epilepsy. 2014 36th Annual International Conference of the IEEE Engineering in Medicine and Biology Society, 4563–4566. https://doi.org/10.1109/EMBC.2014.6944639
 
 ###### Poincaré plot
 This plot is used to quantify self-similarity in processes. [Read more](https://en.wikipedia.org/wiki/Poincar%C3%A9_plot)

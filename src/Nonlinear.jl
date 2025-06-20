@@ -3,6 +3,7 @@ module Nonlinear
 import StatsBase
 import Statistics
 import DFA
+import EntropyHub
 
 #=
 This function calculates the approximate entropy
@@ -11,10 +12,34 @@ This function calculates the approximate entropy
 :param r: the tolerance, default=6
 :return: the approximate entropy
 =#
-function apen(n,m,r)
+function _apen(n,m,r)
     c1=get_apen_dist(n,m,r)
     c2=get_apen_dist(n,m+1,r)
+    @info "Using custom approximate entropy calculation"
+    @info "m: $m, r: $r"
+    @info "n length: $(length(n))"
+    @info "c1: $c1"
+    @info "c2: $c2"
     return log(c1/c2)
+end # apen
+
+function apen(n,m,r)
+    # apen1, _ = EntropyHub.ApEn(n, m=m, r=r)
+    # apen2, _ = EntropyHub.ApEn(n, m=m+1, r=r)
+    # return -log(sum(apen1)/sum(apen2))
+    apens, _ = EntropyHub.ApEn(n, m=m+1, r=r)
+    @info "Using EntropyHub for approximate entropy calculation"
+    @info "m: $m, r: $r"
+    @info "n length: $(length(n))"
+    @info "apens: $apens"
+    @info "apens: $apens"
+    @info "apens length: $(length(apens))"
+    @info "c1: $(apens[end-1])"
+    @info "c2: $(apens[end])"
+    @info "apens ratio: $(apens[end-1]/apens[end])"
+    @info "apens log ratio: $(log(apens[end-1]/apens[end]))"
+    @info apens
+    return log(apens[end-1]/apens[end])
 end # apen
 
 #=
@@ -24,10 +49,35 @@ This function calculates the sample entropy
 :param r: the tolerance, default=6
 :return: the sample entropy
 =#
-function sampen(n,m,r)
+function _sampen(n,m,r)
     c1=get_sampen_dist(n,m,r,1)
     c2=get_sampen_dist(n,m+1,r,0)
+    @info "Using custom sample entropy calculation"
+    @info "m: $m, r: $r"
+    @info "n length: $(length(n))"
+    @info "c1: $c1"
+    @info "c2: $c2"
+    @info "c1/c2: $(c2/c1)"
+    @info "log(c2/c1): $(log(c2/c1))"
+    @info "sampen: $(-log(c2/c1))"
     return -log(c2/c1)
+end # sampen
+
+function sampen(n,m,r)
+    sampen1, _ = EntropyHub.SampEn(n, m=m, r=r)
+    sampen2, _ = EntropyHub.SampEn(n, m=m+1, r=r)
+    @info "Using EntropyHub for sample entropy calculation"
+    @info "m: $m, r: $r"
+    @info "n length: $(length(n))"
+    @info "sampen1: $sampen1"
+    @info "sampen2: $sampen2"
+    @info "sampen1 length: $(length(sampen1))"
+    @info "sampen2 length: $(length(sampen2))"
+    @info "sampen1 last: $(sampen1[end])"
+    @info "sampen2 last: $(sampen2[end])"
+    @info "sampen ratio: $(sampen1[end]/sampen2[end])"
+    @info "sampen log ratio: $(log(sampen1[end]/sampen2[end]))"
+    return log(sampen1[end]/sampen2[end])
 end # sampen
 
 #=
@@ -163,7 +213,7 @@ function dfa(n)
     log_fluc = log10.(fluc)
     ntercept, α1 = DFA.polyfit(log_scales, log_fluc)
         
-    scales, fluc = DFA.dfa(n, boxmax=16, boxmin=4, boxratio=2, overlap=0.0 )
+    scales, fluc = DFA.dfa(n, boxmax=16, boxmin=4, boxratio=2, overlap=0.0)
     log_scales = log10.(scales)
     log_fluc = log10.(fluc)
     intercept, α2 = DFA.polyfit(log_scales, log_fluc)

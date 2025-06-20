@@ -1,3 +1,4 @@
+# This fork is being archived in favor of the HeartRateLab: https://github.com/abcsds/HeartRateLab.jl
 # API
 
 # Data import
